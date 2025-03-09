@@ -5,7 +5,7 @@ import math
 from models.Action import Action
 from models.Colors import Colors
 
-KART_STARTING_POSITION = (140, 465)
+KART_STARTING_POSITION = (140, 440)
 KART_SIZE_PIXELS = (50, 30)
 STEP_TIMEOUT = 15000
 
@@ -25,6 +25,7 @@ class RacingGame:
         self.clock = pygame.time.Clock()
 
         self.track_image = pygame.image.load("img/race_track_001.png")
+        self.kart_image = pygame.image.load("img/kart.png")
 
         self.reset()
 
@@ -79,7 +80,7 @@ class RacingGame:
         current_track_color = self.track_image.get_at((x, y))[:3]
 
         # stop game if out of track
-        if current_track_color == Colors.BLACK.value:
+        if current_track_color == Colors.GRASS.value:
             return self.get_state(), -10, True
 
         # stop game if finished
@@ -128,19 +129,19 @@ class RacingGame:
 
     def __draw_stats(self):
         text_surface = self.text_font.render(
-            "Professional Racist", False, Colors.GREEN.value
+            "Professional Racist", False, Colors.BLACK.value
         )
         self.display.blit(text_surface, (15, 15))
 
         text_surface = self.text_font.render(
-            str(self.step_counter), False, Colors.GREEN.value
+            str(self.step_counter), False, Colors.BLACK.value
         )
         self.display.blit(text_surface, (500, 15))
 
     def __draw_kart(self):
         rect_surface = pygame.Surface(KART_SIZE_PIXELS, pygame.SRCALPHA)
-        rect_surface.fill((0, 255, 0))
-
+        rect_surface.blit(pygame.transform.rotate(self.kart_image, 270), (0, 0))
+        
         rotated_surface = pygame.transform.rotate(
             rect_surface, 360 - self.kart_rotation
         )
@@ -148,17 +149,17 @@ class RacingGame:
 
         self.display.blit(rotated_surface, rotated_rect.topleft)
 
-        # draw the exact position of the kart (debug)
-        pygame.draw.rect(
-            self.display,
-            Colors.RED.value,
-            pygame.Rect(
-                self.kart_position[0],
-                self.kart_position[1],
-                2,
-                2,
-            ),
-        )
+        # draw the exact position of the kart (debugging)
+        # pygame.draw.rect(
+        #     self.display,
+        #     Colors.RED.value,
+        #     pygame.Rect(
+        #         self.kart_position[0],
+        #         self.kart_position[1],
+        #         2,
+        #         2,
+        #     ),
+        # )
 
     def handle_events(self) -> Action:
         for event in pygame.event.get():

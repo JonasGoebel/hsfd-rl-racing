@@ -6,3 +6,5 @@ class Colors(Enum):
     BLACK = (0, 0, 0)
     GREEN = (0, 255, 0)
     RED = (255, 0, 0)
+    TRACK = (68, 77, 84)
+    GRASS = (109, 192, 107)
