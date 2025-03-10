@@ -43,16 +43,27 @@ class RacingGame:
 
     def step(self, action: Action):
         """Takes an action and updates the game state."""
-
+        
+        if action[0] != 1.0 and action[0] != -1.0:
+            print(action[0])
+        
+        # -1 -> -2°    
+        # 1 -> +2°
+        # self.kart_rotation += action * 2
+        self.kart_rotation += action
+        
+        
         # action moves the steering wheel about 10°
-        if action == Action.LEFT:
-            # if self.kart_rotation >= 0.1:
-            # self.kart_rotation -= (10 / 360)
-            self.kart_rotation -= 2
-        elif action == Action.RIGHT:
-            # if self.kart_rotation <= 0.9:
-            # self.kart_rotation += (1 / 360)
-            self.kart_rotation += 2
+        # if action[0] < 0:
+        # # if action == Action.LEFT:
+        #     # if self.kart_rotation >= 0.1:
+        #     # self.kart_rotation -= (10 / 360)
+        #     self.kart_rotation -= 2
+        # # elif action == Action.RIGHT:
+        # elif action[0] > 0:
+        #     # if self.kart_rotation <= 0.9:
+        #     # self.kart_rotation += (1 / 360)
+        #     self.kart_rotation += 2
 
         # stay in degree value range (0-360)
         if self.kart_rotation > 360:
@@ -89,7 +100,7 @@ class RacingGame:
             # use remaining time as reward
             reward = STEP_TIMEOUT - self.step_counter
 
-            return self.get_state, reward, True
+            return self.get_state(), reward, True
 
         self.step_counter += 1
 
@@ -97,7 +108,8 @@ class RacingGame:
         if self.step_counter > STEP_TIMEOUT:
             return self.get_state(), -50, True
 
-        return self.get_state(), 1, False
+        # return self.get_state(), 5, False
+        return self.get_state(), 50, False
 
     def get_state(self):
         """Gets the current state representation."""
@@ -125,7 +137,9 @@ class RacingGame:
         self.__draw_kart()
 
         pygame.display.flip()
-        self.clock.tick(60)
+        # self.clock.tick(60)
+        # self.clock.tick(30)
+        # self.clock.tick(10)
 
     def __draw_stats(self):
         text_surface = self.text_font.render(
@@ -141,7 +155,7 @@ class RacingGame:
     def __draw_kart(self):
         rect_surface = pygame.Surface(KART_SIZE_PIXELS, pygame.SRCALPHA)
         rect_surface.blit(pygame.transform.rotate(self.kart_image, 270), (0, 0))
-        
+
         rotated_surface = pygame.transform.rotate(
             rect_surface, 360 - self.kart_rotation
         )

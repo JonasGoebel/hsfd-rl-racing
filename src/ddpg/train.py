@@ -16,7 +16,9 @@ def train_actor(actor, critic, actor_optimizer, replay_buffer):
     actor_optimizer.step()
 
 
-def train_critic(critic, target_critic, target_actor, optimizer, replay_buffer, gamma=0.99):
+def train_critic(
+    critic, target_critic, target_actor, optimizer, replay_buffer, gamma=0.99
+):
     state, action, reward, next_state, done = replay_buffer.sample()
 
     with torch.no_grad():
@@ -45,23 +47,32 @@ def train_ddpg(
     critic_optimizer,
     replay_buffer,
     gamma=0.99,
-    tau=0.99,
+    # tau=0.99,
+    tau=0.005,
 ):
 
-    train_critic(critic, target_critic, critic_optimizer, replay_buffer, gamma)
+    train_critic(critic, target_critic, target_actor, critic_optimizer, replay_buffer, gamma)
     train_actor(actor, critic, actor_optimizer, replay_buffer)
 
     # soft-updates for target networks
-    for param, target_param in zip(
-        critic.parameters(), target_critic.parameters()
-    ):
-        target_param.data.copy_(
-            tau * param.data + (1 - tau) * target_param.data
-        )
+    
+    update_target_network(target_actor, actor)
+    update_target_network(target_critic, critic)
+    
+    # for param, target_param in zip(
+    #     critic.parameters(), target_critic.parameters()
+    # ):
+    #     target_param.data.copy_(
+    #         tau * param.data + (1 - tau) * target_param.data
+    #     )
 
-    for param, target_param in zip(
-        actor.parameters(), target_actor.parameters()
-    ):
-        target_param.data.copy_(
-            tau * param.data + (1 - tau) * target_param.data
-        )
+    # for param, target_param in zip(
+    #     actor.parameters(), target_actor.parameters()
+    # ):
+    #     target_param.data.copy_(
+    #         tau * param.data + (1 - tau) * target_param.data
+    #     )
+
+def update_target_network(target_net, net, tau=0.005):
+    for target_param, param in zip(target_net.parameters(), net.parameters()):
+        target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
