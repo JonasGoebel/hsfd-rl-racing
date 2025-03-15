@@ -19,18 +19,26 @@ class RacingGame:
         self.text_font = pygame.font.SysFont("Comic Sans MS", 30)
 
         self.board_size_blocks = board_size_blocks
-        # self.block_size_pixels = block_size_pixels
         self.is_display_initalized = False
         pygame.display.set_caption("Racing Game")
         self.clock = pygame.time.Clock()
 
-        self.track_image = pygame.image.load("img/race_track_001.png")
-        self.kart_image = pygame.image.load("img/kart.png")
+        self.track_image = pygame.image.load("src/img/race_track_001.png")
+        self.kart_image = pygame.image.load("src/img/kart.png")
 
-        self.reset()
+        # Checkpoints
+        self.checkpoints = [(160, 260), (400, 250), (510, 400), (770, 285), (870, 600), (675, 665), (640, 840), (160, 830), (145, 500)]
+        self.checkpoint_counter = 0
 
-    def reset(self):
-        """Resets the game to the initial state."""
+        # Display the checkpoints (testing purposes)
+        for (x, y) in self.checkpoints:
+            pygame.draw.circle(self.track_image, (0, 0, 255), (int(x), int(y)), 5)  # Blue for world coords
+    
+
+    def reset(self) -> np.array:
+        """ Resets the game to starting position.
+        Returns: Game state
+        """
         self.kart_position = KART_STARTING_POSITION
 
         # rotation in degrees
@@ -39,26 +47,21 @@ class RacingGame:
 
         self.score = 0
         self.step_counter = 0
+        self.checkpoint_counter = 0
+
+        for (x, y) in self.checkpoints:
+            pygame.draw.circle(self.track_image, (0, 0, 255), (int(x), int(y)), 5)  # Blue for world coords
+
         return self.get_state()
 
-    def step(self, action: Action):
+    # returns (next_state, dist_to_next_checkpoint, is_on_track)
+    def step(self, action: np.array) -> tuple[np.array, int, bool]:
         """Takes an action and updates the game state."""
 
-        # action moves the steering wheel about 10°
-        if action == Action.LEFT:
-            # if self.kart_rotation >= 0.1:
-            # self.kart_rotation -= (10 / 360)
-            self.kart_rotation -= 2
-        elif action == Action.RIGHT:
-            # if self.kart_rotation <= 0.9:
-            # self.kart_rotation += (1 / 360)
-            self.kart_rotation += 2
-
+        # Continuous Action space
+        self.kart_rotation += 2* action[0]
         # stay in degree value range (0-360)
-        if self.kart_rotation > 360:
-            self.kart_rotation -= 360
-        if self.kart_rotation < 0:
-            self.kart_rotation += 360
+        self.kart_rotation = self.kart_rotation % 360
 
         # calculate position change (1 step in depending rotation)
         # convert to radiants
@@ -70,45 +73,59 @@ class RacingGame:
         ]
         self.kart_position = new_position
 
-        # calculate if kart is in field
+        # calculate if kart is on field
+        is_done = self.is_done()
 
-        # remove decimals
+        return (self.get_state(), is_done)
+
+    # returns the state (kart_position_x, kart_position_y, kart_rotation, dist)
+    def get_state(self) -> np.array:
+        """Gets the current state representation."""
+        state = [
+            # normalize to 
+            self.normalize(self.kart_position[0], self.board_size_blocks[0]),
+            self.normalize(self.kart_position[1], self.board_size_blocks[1]),
+            self.normalize(self.kart_rotation, 360),
+            self.dist_to_next_checkpoint() / self.board_size_blocks[0]
+            #self.step_counter,  # Include step counter in the state
+        ]
+
+        return np.array(state, dtype=np.float32)
+    
+    # normalizes game metrics to range [-1;1]
+    def normalize(self, metric, max_val):
+        return 2 * (float(metric) / float(max_val)) - 1
+
+    def is_done(self) -> bool:
+        self.step_counter += 1
+        if self.step_counter > STEP_TIMEOUT:
+            return True
+        
+        # convert cart position to pixels
         x = int(self.kart_position[0])
         y = int(self.kart_position[1])
 
         # get track color of current position
-        current_track_color = self.track_image.get_at((x, y))[:3]
+        color = self.track_image.get_at((x, y))[:3]
 
-        # stop game if out of track
-        if current_track_color == Colors.GRASS.value:
-            return self.get_state(), -10, True
+        if color == Colors.GRASS.value or color == Colors.RED.value:
+            return True
+        return False
 
-        # stop game if finished
-        if current_track_color == Colors.RED.value:
+    def dist_to_next_checkpoint(self):
+        pos_kart = np.array(self.kart_position)
+        pos_checkpoint = np.array( self.checkpoints[self.checkpoint_counter] )
 
-            # use remaining time as reward
-            reward = STEP_TIMEOUT - self.step_counter
+        # euclidean distance
+        dist = np.linalg.norm(pos_kart - pos_checkpoint)
+        if dist < 50:
+            # Display the checkpoints (testing purposes)
+            (x, y) = self.checkpoints[self.checkpoint_counter]
+            pygame.draw.circle(self.track_image, Colors.BLACK.value, (int(x), int(y)), 5)  # Blue for world coords
+            self.checkpoint_counter = (self.checkpoint_counter+1) % len(self.checkpoints)
 
-            return self.get_state, reward, True
+        return dist
 
-        self.step_counter += 1
-
-        # kart took too long to finish
-        if self.step_counter > STEP_TIMEOUT:
-            return self.get_state(), -50, True
-
-        return self.get_state(), 1, False
-
-    def get_state(self):
-        """Gets the current state representation."""
-        state = [
-            self.kart_position[0],
-            self.kart_position[1],
-            self.kart_rotation,
-            self.step_counter,  # Include step counter in the state
-        ]
-
-        return np.array(state, dtype=np.float32)
 
     def render(self):
         """Renders the game on the screen."""
@@ -125,7 +142,7 @@ class RacingGame:
         self.__draw_kart()
 
         pygame.display.flip()
-        self.clock.tick(60)
+        self.clock.tick(200)
 
     def __draw_stats(self):
         text_surface = self.text_font.render(
