@@ -77,7 +77,31 @@ def train():
     agent.save_models("trained")
     save_replay_buffer('my_replay_buffer.pkl')
 
+def test():
+    env = Environment()
 
+    state_dim = env.state_dim
+    action_dim = env.action_dim
+    max_action = float(env.max_action)
+
+    agent = DDPGAgent(state_dim, action_dim, max_action)
+    agent.load_models("trained")
+
+    while True:  # Run indefinitely
+        state = env.reset()
+
+        while True:  # Single episode loop
+            env.render()
+            env.handle_events()
+
+            # Select action and apply to environment
+            action = agent.select_action(state, noise_strength=0)  # No exploration noise
+            next_state, _, done = env.step(state, action)
+
+            if done:
+                break  # Reset environment after finishing episode
+
+            state = next_state
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train or test the model.")
