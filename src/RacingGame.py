@@ -153,7 +153,7 @@ class RacingGame:
 
     def __draw_stats(self):
         text_surface = self.text_font.render(
-            "Professional Racist", False, Colors.BLACK.value
+            "Professional Racer", False, Colors.BLACK.value
         )
         self.display.blit(text_surface, (15, 15))
 
