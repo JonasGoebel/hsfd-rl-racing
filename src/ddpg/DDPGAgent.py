@@ -90,25 +90,25 @@ class DDPGAgent:
         for target_param, param in zip(self.target_critic.parameters(), self.critic.parameters()):
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
-    def save_models(self, filename):
+    def save_models(self, model_path):
         '''
         Save the models' state_dicts to a file.
         '''
-        torch.save(self.actor.state_dict(), filename + "_actor.pth")
-        torch.save(self.critic.state_dict(), filename + "_critic.pth")
-        torch.save(self.target_actor.state_dict(), filename + "_target_actor.pth")
-        torch.save(self.target_critic.state_dict(), filename + "_target_critic.pth")
-        print(f"Models saved to {filename}")
+        torch.save(self.actor.state_dict(), os.path.join(model_path, "actor.pth"))
+        torch.save(self.critic.state_dict(), os.path.join(model_path, "critic.pth"))
+        torch.save(self.target_actor.state_dict(), os.path.join(model_path, "target_actor.pth"))
+        torch.save(self.target_critic.state_dict(), os.path.join(model_path, "target_critic.pth"))
+        print(f"Models saved to {model_path}")
 
-    def load_models(self, filename):
+    def load_models(self, model_path):
         '''
         Load the models' state_dicts from a file.
         '''
         model_files = {
-            "actor": filename + "_actor.pth",
-            "critic": filename + "_critic.pth",
-            "target_actor": filename + "_target_actor.pth",
-            "target_critic": filename + "_target_critic.pth",
+            "actor": os.path.join(model_path, "actor.pth"),
+            "critic": os.path.join(model_path, "critic.pth"),
+            "target_actor": os.path.join(model_path, "target_actor.pth"),
+            "target_critic": os.path.join(model_path, "target_critic.pth"),
         }
 
         # Check if all files exist before loading
@@ -122,6 +122,6 @@ class DDPGAgent:
             self.target_actor.to(self.device)
             self.target_critic.to(self.device)
 
-            print(f"Models loaded from \"{filename}\"")
+            print(f"Models loaded from \"{model_path}\"")
         else:
-            print(f"No model loaded: Not all files found at \"{filename}. Training from scratch...\"")
+            print(f"No model loaded: Not all files found at \"{model_path}. Training from scratch...")

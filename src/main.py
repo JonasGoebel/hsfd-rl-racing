@@ -15,9 +15,9 @@ def load_replay_buffer(filename='replay_buffer.pkl'):
     with open(filename, 'rb') as f:
         return pickle.load(f)
 
-def train(num_episodes=3000, episode_length=2500, exploration=.2, batch_size=128):
+def train(model_path="", num_episodes=3000, episode_length=2500, exploration=.2, batch_size=128):
     env = Environment()
-    agent, replay_buffer = initialize_training(env)
+    agent, replay_buffer = initialize_training(env, model_path)
 
     for episode in range(num_episodes):
         state = env.reset()
@@ -44,19 +44,19 @@ def train(num_episodes=3000, episode_length=2500, exploration=.2, batch_size=128
         print(f"Episode {episode + 1}, Reward: {episode_reward:.2f}")
 
         if (episode + 1) % 100 == 0:
-            save_progress(agent, replay_buffer)
+            save_progress(agent, replay_buffer, model_path)
 
-    save_progress(agent, replay_buffer)
+    save_progress(agent, replay_buffer, model_path)
 
-def initialize_training(env):
+def initialize_training(env, model_path):
     """Initializes the agent and replay buffer, loading existing data if available."""
     state_dim, action_dim, max_action = env.state_dim, env.action_dim, float(env.max_action)
 
     agent = DDPGAgent(state_dim, action_dim, max_action)
-    agent.load_models("trained")
+    agent.load_models(model_path)
 
-    if os.path.exists("my_replay_buffer.pkl"):
-        replay_buffer = load_replay_buffer("my_replay_buffer.pkl")
+    if os.path.exists( os.path.join(model_path, "my_replay_buffer.pkl") ):
+        replay_buffer = load_replay_buffer( os.path.join(model_path, "my_replay_buffer.pkl") )
         print(f"Loaded replay buffer with {replay_buffer.size} experiences")
     else:
         replay_buffer = ReplayBuffer(1000000, state_dim, action_dim) # stores around 1.600 epochs
@@ -64,10 +64,10 @@ def initialize_training(env):
 
     return agent, replay_buffer
 
-def save_progress(agent, replay_buffer):
+def save_progress(agent, replay_buffer, model_path):
     """Saves the trained models and replay buffer."""
-    agent.save_models("trained")
-    save_replay_buffer(replay_buffer, 'my_replay_buffer.pkl')
+    agent.save_models(model_path)
+    save_replay_buffer(replay_buffer, os.path.join(model_path, "my_replay_buffer.pkl"))
 
 def test():
     env = Environment()
@@ -104,6 +104,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.train:
-        train()
+        train(model_path="model2")
     elif args.test:
         test()
