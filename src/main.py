@@ -1,5 +1,6 @@
 import pickle
 import os
+import argparse
 
 from Environment import Environment
 from ddpg.DDPGAgent import DDPGAgent
@@ -14,7 +15,7 @@ def load_replay_buffer(filename='replay_buffer.pkl'):
     with open(filename, 'rb') as f:
         return pickle.load(f)
 
-def main():
+def train():
     env = Environment()
 
     state_dim = env.state_dim
@@ -79,4 +80,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Train or test the model.")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--train", action="store_true", help="Train the model")
+    group.add_argument("--test", action="store_true", help="Test the model")
+
+    args = parser.parse_args()
+
+    if args.train:
+        train()
+    elif args.test:
+        test()
