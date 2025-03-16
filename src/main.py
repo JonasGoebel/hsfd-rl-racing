@@ -104,6 +104,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.train:
-        train(model_path="model2")
+        train(model_path="model_latest")
     elif args.test:
-        test(model_path="model2")
+        test(model_path="model_latest")
