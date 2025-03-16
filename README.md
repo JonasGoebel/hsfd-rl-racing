@@ -64,6 +64,7 @@ The training process will update the **Actor-Critic** models and improve the AI'
 ![Demo](src/img/First_Model.gif)
 ### Intermediate Model
 ![Demo](src/img/Intermediate_Model.gif)
+### Final Model
 
 
 ## License
