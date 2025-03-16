@@ -59,6 +59,8 @@ The training process will update the **Actor-Critic** models and improve the AI'
 ├── pyproject.toml  # Project dependencies
 ```
 
+##Training progress
+
 ## License
 This project is licensed under the MIT License. Feel free to contribute!
 
