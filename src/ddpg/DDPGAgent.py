@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
+import os
 
 from ddpg.Actor import Actor
 from ddpg.Critic import Critic
@@ -103,15 +104,24 @@ class DDPGAgent:
         '''
         Load the models' state_dicts from a file.
         '''
-        self.actor.load_state_dict(torch.load(filename + "_actor.pth"))
-        self.critic.load_state_dict(torch.load(filename + "_critic.pth"))
-        self.target_actor.load_state_dict(torch.load(filename + "_target_actor.pth"))
-        self.target_critic.load_state_dict(torch.load(filename + "_target_critic.pth"))
-        
-        # Move the models to device
-        self.actor.to(self.device)
-        self.critic.to(self.device)
-        self.target_actor.to(self.device)
-        self.target_critic.to(self.device)
+        model_files = {
+            "actor": filename + "_actor.pth",
+            "critic": filename + "_critic.pth",
+            "target_actor": filename + "_target_actor.pth",
+            "target_critic": filename + "_target_critic.pth",
+        }
 
-        print(f"Models loaded from \"{filename}\"")
+        # Check if all files exist before loading
+        if all(os.path.exists(path) for path in model_files.values()):
+            for model_name, file_path in model_files.items():
+                getattr(self, model_name).load_state_dict(torch.load(file_path))
+
+            # Move models to the correct device
+            self.actor.to(self.device)
+            self.critic.to(self.device)
+            self.target_actor.to(self.device)
+            self.target_critic.to(self.device)
+
+            print(f"Models loaded from \"{filename}\"")
+        else:
+            print(f"No model loaded: Not all files found at \"{filename}. Training from scratch...\"")
