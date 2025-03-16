@@ -16,7 +16,7 @@ def load_replay_buffer(filename='replay_buffer.pkl'):
         return pickle.load(f)
 
 def train(model_path="", num_episodes=3000, episode_length=2500, exploration=.2, batch_size=128):
-    env = Environment()
+    env = Environment("train")
     agent, replay_buffer = initialize_training(env, model_path)
 
     for episode in range(num_episodes):
@@ -69,15 +69,15 @@ def save_progress(agent, replay_buffer, model_path):
     agent.save_models(model_path)
     save_replay_buffer(replay_buffer, os.path.join(model_path, "my_replay_buffer.pkl"))
 
-def test():
-    env = Environment()
+def test(model_path=""):
+    env = Environment("test")
 
     state_dim = env.state_dim
     action_dim = env.action_dim
     max_action = float(env.max_action)
 
     agent = DDPGAgent(state_dim, action_dim, max_action)
-    agent.load_models("trained")
+    agent.load_models(model_path)
 
     while True:  # Run indefinitely
         state = env.reset()
@@ -106,4 +106,4 @@ if __name__ == "__main__":
     if args.train:
         train(model_path="model2")
     elif args.test:
-        test()
+        test(model_path="model2")

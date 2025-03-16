@@ -5,9 +5,9 @@ import numpy as np
 # Extends Game and provides useful environment information
 class Environment(RacingGame):
 
-    def __init__(self):
+    def __init__(self, mode="train"):
         game_size_pixels = (1000, 1000)
-        super().__init__(game_size_pixels)
+        super().__init__(game_size_pixels, mode)
 
         # state dim (4): pos_x, pos_y, rotation, dist_to_next_checkpoint
         self.state_dim = 4

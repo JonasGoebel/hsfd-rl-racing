@@ -13,7 +13,7 @@ STEP_TIMEOUT = 15000
 class RacingGame:
     """Environment wrapper for the Racing game."""
 
-    def __init__(self, board_size_blocks: tuple[int, int]):
+    def __init__(self, board_size_blocks: tuple[int, int], mode="train"):
         pygame.init()
         pygame.font.init()
         self.text_font = pygame.font.SysFont("Comic Sans MS", 30)
@@ -23,7 +23,10 @@ class RacingGame:
         pygame.display.set_caption("Racing Game")
         self.clock = pygame.time.Clock()
 
-        self.track_image = pygame.image.load("src/img/race_track_001_legacy.png")
+        if mode == "train":
+            self.track_image = pygame.image.load("src/img/race_track_001_legacy.png")
+        else:
+            self.track_image = pygame.image.load("src/img/race_track_001.png")
         self.kart_image = pygame.image.load("src/img/kart.png")
 
         # Checkpoints
