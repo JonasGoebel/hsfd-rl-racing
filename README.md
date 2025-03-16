@@ -1,6 +1,6 @@
 # RL Racing Game
 
-![RL Racing Game](img/game_preview.png)
+![RL Racing Game](src/img/logo.png)
 
 ## Overview
 This project is a **Reinforcement Learning (RL)-based Racing Game**, built using **Pygame** for rendering and **Deep Deterministic Policy Gradient (DDPG)** for training an autonomous racing agent.
