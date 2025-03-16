@@ -15,51 +15,24 @@ def load_replay_buffer(filename='replay_buffer.pkl'):
     with open(filename, 'rb') as f:
         return pickle.load(f)
 
-def train():
+def train(num_episodes=3000, episode_length=2500, exploration=.2, batch_size=128):
     env = Environment()
-
-    state_dim = env.state_dim
-    action_dim = env.action_dim
-    max_action = float(env.max_action)
-
-    # state_dim 3: (pos_x, pos_y, rotation)
-    # action_dim 1: steering (left 0, forward 1, right 2)
-    # max_action 1: steering only in [-1;1]
-    agent = DDPGAgent(state_dim, action_dim, max_action)
-    agent.load_models("trained")
-
-    num_episodes = 50000
-    episode_length = 2500 # allows for around 2 laps and the first curve, 4605 points
-
-    if os.path.exists("my_replay_buffer.pkl"):
-        replay_buffer = load_replay_buffer("my_replay_buffer.pkl")
-        print(f"Loaded replay buffer with {replay_buffer.size} experiences")
-    else:
-        replay_buffer = ReplayBuffer(1000000, state_dim, action_dim) # stores around 1.600 epochs@1mil(default)
-        print(f"Created new Replay Buffer")
+    agent, replay_buffer = initialize_training(env)
 
     for episode in range(num_episodes):
         state = env.reset()
         episode_reward = 0
 
-        #env.handle_events()
-        # stabilize first
-
-        # usually until done (while True), fixed value prevents infinite loops
         for _ in range(episode_length):
-            #if (episode > 500):
-            env.render()
-            env.handle_events()
-
             # Select action and apply to environment
-            action = agent.select_action(state, noise_strength=.2)
+            action = agent.select_action(state, noise_strength=exploration)
             next_state, reward, done = env.step(state, action)
 
             # Store experience in replay buffer
             replay_buffer.add(state, action, reward, next_state, done)
 
             # Train the agent
-            agent.train(replay_buffer, batch_size=128)
+            agent.train(replay_buffer, batch_size=batch_size)
 
             episode_reward += reward
 
@@ -70,12 +43,31 @@ def train():
 
         print(f"Episode {episode + 1}, Reward: {episode_reward:.2f}")
 
-        if (episode+1)%100 == 0:
-            agent.save_models("trained")
-            save_replay_buffer(replay_buffer, 'my_replay_buffer.pkl')
+        if (episode + 1) % 100 == 0:
+            save_progress(agent, replay_buffer)
 
+    save_progress(agent, replay_buffer)
+
+def initialize_training(env):
+    """Initializes the agent and replay buffer, loading existing data if available."""
+    state_dim, action_dim, max_action = env.state_dim, env.action_dim, float(env.max_action)
+
+    agent = DDPGAgent(state_dim, action_dim, max_action)
+    agent.load_models("trained")
+
+    if os.path.exists("my_replay_buffer.pkl"):
+        replay_buffer = load_replay_buffer("my_replay_buffer.pkl")
+        print(f"Loaded replay buffer with {replay_buffer.size} experiences")
+    else:
+        replay_buffer = ReplayBuffer(1000000, state_dim, action_dim) # stores around 1.600 epochs
+        print(f"Created new Replay Buffer")
+
+    return agent, replay_buffer
+
+def save_progress(agent, replay_buffer):
+    """Saves the trained models and replay buffer."""
     agent.save_models("trained")
-    save_replay_buffer('my_replay_buffer.pkl')
+    save_replay_buffer(replay_buffer, 'my_replay_buffer.pkl')
 
 def test():
     env = Environment()
