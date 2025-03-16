@@ -23,16 +23,12 @@ class RacingGame:
         pygame.display.set_caption("Racing Game")
         self.clock = pygame.time.Clock()
 
-        self.track_image = pygame.image.load("src/img/race_track_001.png")
+        self.track_image = pygame.image.load("src/img/race_track_001_legacy.png")
         self.kart_image = pygame.image.load("src/img/kart.png")
 
         # Checkpoints
         self.checkpoints = [(160, 260), (400, 250), (510, 400), (770, 285), (870, 600), (675, 665), (640, 840), (160, 830), (145, 500)]
         self.checkpoint_counter = 0
-
-        # Display the checkpoints (testing purposes)
-        for (x, y) in self.checkpoints:
-            pygame.draw.circle(self.track_image, (0, 0, 255), (int(x), int(y)), 5)  # Blue for world coords
     
 
     def reset(self) -> np.array:
@@ -50,12 +46,14 @@ class RacingGame:
         self.checkpoint_counter = 0
 
         for (x, y) in self.checkpoints:
-            pygame.draw.circle(self.track_image, (0, 0, 255), (int(x), int(y)), 5)  # Blue for world coords
+            pygame.draw.circle(self.track_image, Colors.BLACK.value, (int(x), int(y)), 5)  # Blue for world coords
+        pygame.draw.circle(self.track_image, Colors.BLUE.value, (int(self.checkpoints[0][0]), int(self.checkpoints[0][1])), 5)  # Blue for world coords
+        
 
         return self.get_state()
 
     # returns (next_state, dist_to_next_checkpoint, is_on_track)
-    def step(self, action: np.array) -> tuple[np.array, int, bool]:
+    def step(self, action: np.array) -> tuple[np.array, bool, bool]:
         """Takes an action and updates the game state."""
 
         # Continuous Action space
@@ -74,9 +72,12 @@ class RacingGame:
         self.kart_position = new_position
 
         # calculate if kart is on field
-        is_done = self.is_done()
+        is_done, color_done = self.is_done()
 
-        return (self.get_state(), is_done)
+        if color_done == Colors.RED:
+            return (self.get_state(), is_done, self.step_counter)
+
+        return (self.get_state(), is_done, None)
 
     # returns the state (kart_position_x, kart_position_y, kart_rotation, dist)
     def get_state(self) -> np.array:
@@ -96,10 +97,10 @@ class RacingGame:
     def normalize(self, metric, max_val):
         return 2 * (float(metric) / float(max_val)) - 1
 
-    def is_done(self) -> bool:
+    def is_done(self) -> tuple[bool, Colors]:
         self.step_counter += 1
         if self.step_counter > STEP_TIMEOUT:
-            return True
+            return True, None
         
         # convert cart position to pixels
         x = int(self.kart_position[0])
@@ -108,9 +109,11 @@ class RacingGame:
         # get track color of current position
         color = self.track_image.get_at((x, y))[:3]
 
-        if color == Colors.GRASS.value or color == Colors.RED.value:
-            return True
-        return False
+        if color == Colors.GRASS.value:
+            return True, Colors.GREEN
+        elif color == Colors.RED.value:
+            return True, Colors.RED
+        return False, None
 
     def dist_to_next_checkpoint(self):
         pos_kart = np.array(self.kart_position)
@@ -119,10 +122,14 @@ class RacingGame:
         # euclidean distance
         dist = np.linalg.norm(pos_kart - pos_checkpoint)
         if dist < 50:
-            # Display the checkpoints (testing purposes)
+            # grey out previous checkpoint
             (x, y) = self.checkpoints[self.checkpoint_counter]
             pygame.draw.circle(self.track_image, Colors.BLACK.value, (int(x), int(y)), 5)  # Blue for world coords
+
+            # update checkpoint
             self.checkpoint_counter = (self.checkpoint_counter+1) % len(self.checkpoints)
+            (x, y) = self.checkpoints[self.checkpoint_counter]
+            pygame.draw.circle(self.track_image, Colors.BLUE.value, (int(x), int(y)), 5)  # Blue for world coords
 
         return dist
 

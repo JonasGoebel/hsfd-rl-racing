@@ -8,6 +8,7 @@ from ddpg.ReplayBuffer import ReplayBuffer
 def save_replay_buffer(replay_buffer, filename='replay_buffer.pkl'):
     with open(filename, 'wb') as f:
         pickle.dump(replay_buffer, f)
+        print("Saved Replay Buffer")
 
 def load_replay_buffer(filename='replay_buffer.pkl'):
     with open(filename, 'rb') as f:
@@ -26,14 +27,15 @@ def main():
     agent = DDPGAgent(state_dim, action_dim, max_action)
     agent.load_models("trained")
 
-    num_episodes = 10000
-    episode_length = 5000 # veeery long
+    num_episodes = 50000
+    episode_length = 2500 # allows for around 2 laps and the first curve, 4605 points
 
     if os.path.exists("my_replay_buffer.pkl"):
         replay_buffer = load_replay_buffer("my_replay_buffer.pkl")
         print(f"Loaded replay buffer with {replay_buffer.size} experiences")
     else:
-        replay_buffer = ReplayBuffer(1000000, state_dim, action_dim) # stores around 400 episodes
+        replay_buffer = ReplayBuffer(1000000, state_dim, action_dim) # stores around 1.600 epochs@1mil(default)
+        print(f"Created new Replay Buffer")
 
     for episode in range(num_episodes):
         state = env.reset()
@@ -45,18 +47,18 @@ def main():
         # usually until done (while True), fixed value prevents infinite loops
         for _ in range(episode_length):
             #if (episode > 500):
-            #env.render()
-            #env.handle_events()
+            env.render()
+            env.handle_events()
 
             # Select action and apply to environment
-            action = agent.select_action(state, noise_strength=.3)
+            action = agent.select_action(state, noise_strength=.2)
             next_state, reward, done = env.step(state, action)
 
             # Store experience in replay buffer
             replay_buffer.add(state, action, reward, next_state, done)
 
             # Train the agent
-            agent.train(replay_buffer, batch_size=512)
+            agent.train(replay_buffer, batch_size=128)
 
             episode_reward += reward
 
