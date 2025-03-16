@@ -60,8 +60,11 @@ The training process will update the **Actor-Critic** models and improve the AI'
 ```
 
 ## Training progress
-### First Episodes
-![Demo](src/img/First_Episodes.gif)
+### First Model
+![Demo](src/img/First_Model.gif)
+### Intermediate Model
+![Demo](src/img/Intermediate_Model.gif)
+
 
 ## License
 This project is licensed under the MIT License. Feel free to contribute!
