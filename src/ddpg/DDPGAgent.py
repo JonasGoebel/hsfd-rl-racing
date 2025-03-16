@@ -32,7 +32,7 @@ class DDPGAgent:
 
     def select_action(self, state, noise_strength=0.1):
         '''
-        Initialize the DDPG Agent
+        Select an Action
         '''
 
         state = torch.FloatTensor(state).to(self.device)

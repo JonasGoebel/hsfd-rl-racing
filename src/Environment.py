@@ -49,10 +49,10 @@ class Environment(RacingGame):
             # TODO: reward quicker paths to checkpoint
             return 0
         
-        # cubicly higher rewards for faster improvement towards checkpoint
-        alpha = 3 # cubic reward scaling
+        # quadratically higher rewards for faster improvement towards checkpoint
+        alpha = 2 # quadratic reward scaling
         relative_reward = improvement/max_improvement # reward in [-1;1]
-        reward = np.round( relative_reward**alpha,  2)
+        reward = np.sign(relative_reward) * np.round( abs(relative_reward)**alpha,  2)
 
         return reward
     

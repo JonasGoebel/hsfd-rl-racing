@@ -15,7 +15,7 @@ This project is a **Reinforcement Learning (RL)-based Racing Game**, built using
 ### Requirements
 - Python **3.12+**
 - Pygame **2.6.1+**
-- PyTorch (if training the agent)
+- PyTorch
 
 ### Setup
 1. Clone the repository:
@@ -29,32 +29,34 @@ This project is a **Reinforcement Learning (RL)-based Racing Game**, built using
    ```
 
 ## Usage
-### Running the Game
-To start the game manually:
-```sh
-python src/main.py
-```
-Use arrow keys to control the kart.
-
 ### Training the RL Agent
 To train the AI agent using DDPG:
 ```sh
-python src/ddpg/train.py
+python src/main.py --train
 ```
 The training process will update the **Actor-Critic** models and improve the AI's racing ability over time.
+
+### Testing a Model
+To visualize the capabilities of a model:
+```sh
+python src/main.py --test
+```
 
 ## Project Structure
 ```
 ├── src/
-│   ├── main.py          # Game loop
-│   ├── RacingGame.py    # Game environment
+│   ├── Environment.py   # Game Environment and Rewards
+│   ├── main.py          # Game Loop and Training
+│   ├── RacingGame.py    # Pygame Game
 │   ├── ddpg/
-│   │   ├── Actor.py     # Actor model (policy network)
-│   │   ├── Critic.py    # Critic model (value network)
-│   │   ├── train.py     # Training functions
+│   │   ├── Actor.py          # Actor model (policy network)
+│   │   ├── Critic.py         # Critic model (value network)
+│   │   ├── DDPGAgent.py      # Abstract agent, train function
+│   │   ├── ReplayBuffer.py   # Stores past experiences
 ├── img/
-│   ├── race_track_001.png  # Track image
-│   ├── kart.png            # Kart sprite
+│   ├── race_track_001_Legacy.png   # Finite track image (training)
+│   ├── race_track_001.png          # Infinite track imgage (testing)
+│   ├── kart.png                    # Kart image
 ├── README.md
 ├── pyproject.toml  # Project dependencies
 ```
