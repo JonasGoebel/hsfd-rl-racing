@@ -20,8 +20,8 @@ This project is a **Reinforcement Learning (RL)-based Racing Game**, built using
 ### Setup
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/rl-racing-game.git
-   cd rl-racing-game
+   git clone https://github.com/JonasGoebel/hsfd-rl-racing
+   cd hsfd-rl-racing
    ```
 2. Install dependencies:
    ```sh
