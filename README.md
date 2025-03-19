@@ -67,7 +67,7 @@ python src/main.py --test
 ### Intermediate Model
 ![Demo](src/img/Intermediate_Model.gif)
 ### Final Model
-
+![Demo](src/img/final_model.gif)
 
 ## License
 This project is licensed under the MIT License. Feel free to contribute!
